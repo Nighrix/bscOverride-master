@@ -181,6 +181,7 @@ type TraceCallConfig struct {
 	Timeout        *string
 	Reexec         *uint64
 	StateOverrides *ethapi.StateOverride
+	BlockOverrides *ethapi.BlockOverrides
 }
 
 // StdTraceConfig holds extra parameters to standard-json trace functions.
@@ -869,16 +870,23 @@ func (api *API) TraceCall(ctx context.Context, args ethapi.CallArgs, blockNrOrHa
 	if err != nil {
 		return nil, err
 	}
+	
+	vmctx := core.NewEVMBlockContext(block.Header(), api.chainContext(ctx), nil)
+	
 	// Apply the customized state rules if required.
 	if config != nil {
 		if err := config.StateOverrides.Apply(statedb); err != nil {
 			return nil, err
 		}
+		config.BlockOverrides.Apply(&vmctx)
 	}
 	// Execute the trace
-	msg := args.ToMessage(api.backend.RPCGasCap())
-	vmctx := core.NewEVMBlockContext(block.Header(), api.chainContext(ctx), nil)
-
+	msg, err := args.ToMessage(api.backend.RPCGasCap())
+	if err != nil {
+		return nil, err
+	}
+	
+	
 	var traceConfig *TraceConfig
 	if config != nil {
 		traceConfig = &TraceConfig{
