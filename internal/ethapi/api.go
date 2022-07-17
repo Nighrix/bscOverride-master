@@ -870,6 +870,7 @@ func (diff *StateOverride) Apply(state *state.StateDB) error {
 
 type BlockOverrides struct {
 	Number     *hexutil.Big
+	Random     *common.Hash
 }
 
 func (diff *BlockOverrides) Apply(blockCtx *vm.BlockContext) {
@@ -878,6 +879,9 @@ func (diff *BlockOverrides) Apply(blockCtx *vm.BlockContext) {
 	}
 	if diff.Number != nil {
 		blockCtx.BlockNumber = diff.Number.ToInt()
+	}
+	if diff.Random != nil {
+		blockCtx.Random = diff.Random
 	}
 }
 
